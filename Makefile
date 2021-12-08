@@ -8,8 +8,9 @@ endif
 migrate.new:
 	@migrate create -ext sql -dir migrations -seq $(migration_name_option)
 
-ssm_db_path := "/dev/lodestar/db/"
-db_params := $(shell aws ssm get-parameters-by-path --path ${ssm_db_path} | jq -c 'reduce .Parameters[] as $$o ({}; .[$$o.Name] = $$o.Value)')
+ssm_db_path = "/dev/lodestar/db/"
+ssm_results = $(shell aws ssm get-parameters-by-path --path ${ssm_db_path})
+db_params = $(shell echo '${ssm_results}' | jq -c 'reduce .Parameters[] as $$o ({}; .[$$o.Name] = $$o.Value)')
 
 host = $(shell jq -r '."/dev/lodestar/db/host"' <<< '${db_params}')
 port = $(shell jq -r '."/dev/lodestar/db/port"' <<< '${db_params}')
