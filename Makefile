@@ -1,6 +1,6 @@
 .PHONY: migrate.new migrate.up migrate.down
 
-migration name = "new_migration"
+migration_name = new_migration
 ifdef migration_name
 	migration_name_option = migration_name
 endif
