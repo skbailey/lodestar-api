@@ -8,6 +8,7 @@ RUN apk add --no-cache \
         make \
         jq \
         bash \
+        groff \
         py3-pip \
     && pip3 install --upgrade pip \
     && pip3 install --no-cache-dir \

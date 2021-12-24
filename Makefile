@@ -16,7 +16,7 @@ migrate.new:
 	@migrate create -ext sql -dir migrations -seq $(migration_name_option)
 
 ssm_db_path = /${environment}/lodestar/db/
-ssm_results = $(shell aws ssm get-parameters-by-path --path ${ssm_db_path})
+ssm_results = $(shell aws ssm get-parameters-by-path --region us-east-1 --path ${ssm_db_path})
 db_params = $(shell echo '${ssm_results}' | jq -c 'reduce .Parameters[] as $$o ({}; .[$$o.Name] = $$o.Value)')
 
 host = $(shell jq -r '."/${environment}/lodestar/db/host"' <<< '${db_params}')
