@@ -28,11 +28,15 @@ func commandServer() *cli.Command {
 			e := echo.New()
 			e.Use(middleware.Logger())
 			e.Use(middleware.Recover())
+			e.Use(middleware.Secure())
+			e.Use(middleware.Gzip())
 			e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 				KeyFunc: getKey,
 			}))
 
 			e.GET("/", func(c echo.Context) error {
+				token := c.Get("user")
+				fmt.Printf("Context: %#v\n", token)
 				return c.String(http.StatusOK, "Hello, Fam!")
 			})
 			e.Logger.Fatal(e.Start(":8082"))
