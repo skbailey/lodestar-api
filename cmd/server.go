@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"lodestar/config"
 	"net/http"
+	"text/template"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -13,6 +15,14 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/urfave/cli/v2"
 )
+
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
 func commandServer() *cli.Command {
 	return &cli.Command{
@@ -30,15 +40,26 @@ func commandServer() *cli.Command {
 			e.Use(middleware.Recover())
 			e.Use(middleware.Secure())
 			e.Use(middleware.Gzip())
-			e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
-				KeyFunc: getKey,
-			}))
+
+			t := &Template{
+				templates: template.Must(template.ParseGlob("public/views/*.html")),
+			}
+			e.Renderer = t
 
 			e.GET("/", func(c echo.Context) error {
+				return c.Render(http.StatusOK, "index.html", "Lodestar")
+			})
+
+			api := e.Group("/api")
+			api.Use(middleware.JWTWithConfig(middleware.JWTConfig{
+				KeyFunc: getKey,
+			}))
+			api.GET("/", func(c echo.Context) error {
 				token := c.Get("user")
 				fmt.Printf("Context: %#v\n", token)
 				return c.String(http.StatusOK, "Hello, Fam!")
 			})
+
 			e.Logger.Fatal(e.Start(":8082"))
 
 			return nil
